@@ -1,6 +1,6 @@
 # cu   (chunkwise unique)
 
-Return unique elements within each chunk.
+Return unique elements within each chunk by filtering repeated values.
 
 
 ## Synopsis
@@ -39,6 +39,9 @@ iquery -aq "cu(build(<s:string>[i=1:4,4,0],\'{1}[(x),(y),(x),(a)]\',true))"
 {1} 'a'
 {2} 'x'
 {4} 'y'
+
+# The intended use of this is to help speed up the SciDB uniq operator workflow:
+iquery -aq "unique(sort(cu(build(<s:string>[i=1:4,4,0],\'{1}[(x),(y),(x),(a)]\',true))))"
 
 ```
    
