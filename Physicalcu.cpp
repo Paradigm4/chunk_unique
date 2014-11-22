@@ -96,13 +96,12 @@ public:
                     Value const& val = chunkIter->getItem();
                     Coordinates coords = chunkIter->getPosition();
 // XXX this is a dumb way to munge these data, improve
-                    chunkdata.push_back(val.getString());
+                    chunkdata.push_back(string(val.getString()));
                     last_row = coords[0];
                     ++(*chunkIter);
                 }
                 if(chunkIter->end()) break;
             }
-// C string array (OK, I know I should use some boost library for this or something)
             const char **a = (const char **)malloc(chunkdata.size() * sizeof(char *));
             if(!a) throw PLUGIN_USER_EXCEPTION("chunk unique malloc error", SCIDB_SE_UDO, SCIDB_USER_ERROR_CODE_START);
             for(unsigned int j=0;j<chunkdata.size(); ++j) a[j] = chunkdata[j].c_str();
@@ -114,10 +113,10 @@ public:
             const char *ref = a[0];
             for(;;)
             {
-                if(outputChunkIter->end() || j>chunkdata.size()) break;
-                if(a[j] && cmpstringp(&ref, &a[j])!=0 || j==0)
+                if(outputChunkIter->end() || j>=chunkdata.size()) break;
+                if(a[j] && ((strcmp(ref, a[j])!=0) || j==0))
                 {
-                    val.setData(a[j], strlen(a[j]));
+                    val.setData(a[j],strlen(a[j])+1);
                     ref = a[j];
                     outputChunkIter->writeItem(val);
                 }
