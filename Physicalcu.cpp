@@ -109,26 +109,20 @@ public:
             qsort (a, chunkdata.size(), sizeof (char *), cmpstringp);
 // write the output (has same schema as input)
             shared_ptr<ChunkIterator> outputChunkIter = outputArrayIterator->newChunk(start).getIterator(query, ChunkIterator::SEQUENTIAL_WRITE);
-            size_t j = 1;
+            size_t j = 0;
             Value val;
             const char *ref = a[0];
-            val.setData(ref, strlen(ref));
-            outputChunkIter->writeItem(val);
-            ++(*outputChunkIter);
             for(;;)
             {
-                if(!outputChunkIter->end())
-                {
-                    if(cmpstringp(&ref, &a[j])!=0)
-                    {
-                      val.setData(a[j], strlen(a[j]));
-                      ref = a[j];
-                      outputChunkIter->writeItem(val);
-                    }
-                    ++j;
-                    ++(*outputChunkIter);
-                }
                 if(outputChunkIter->end() || j>chunkdata.size()) break;
+                if(a[j] && cmpstringp(&ref, &a[j])!=0 || j==0)
+                {
+                    val.setData(a[j], strlen(a[j]));
+                    ref = a[j];
+                    outputChunkIter->writeItem(val);
+                }
+                ++j;
+                ++(*outputChunkIter);
             }
             if(a) free(a);
             outputChunkIter->flush();
