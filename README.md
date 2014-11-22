@@ -1,6 +1,5 @@
 # cu   (chunkwise unique)
 
-THIS IS STILL IN DEVELOPMENT AND NOT STABLE, USE WITH CARE.
 
 Return unique elements within each chunk by filtering repeated values.
 
@@ -14,15 +13,13 @@ Filter chunk-wise unique elements where:
 
 ## Return value
 
-`cu(A)` returns a sparse array with schema identical to A whose
-entries contain unique elements within each chunk by
-marking repeated entries empty. The array A may be
-multi-dimensional and chunked arbitrarily. The cu filter is
-applied independently within each chunk. It is intended to
-help speed up the SciDB uniq and sort operators by cutting
-down on the amount of data to be sorted. Note that the order
-of returned elements may differ from the input array although
-the schema will be the same.
+`cu(A)` returns a sparse array with schema identical to A whose entries contain
+unique elements within each chunk by marking repeated entries empty. The array
+A may be multi-dimensional, dense or sparse, and chunked arbitrarily.  The cu
+filter is applied independently within each chunk. It is intended to help speed
+up the SciDB uniq and sort operators by cutting down on the amount of data to
+be sorted. Note that the order of returned elements may differ from the input
+array although the schema will be the same.
 
 
 ## Example
