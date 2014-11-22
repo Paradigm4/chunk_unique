@@ -39,10 +39,27 @@ iquery -aq "cu(build(<s:string>[i=1:4,4,0],\'{1}[(x),(y),(x),(a)]\',true))"
 {1} 'a'
 {2} 'x'
 {4} 'y'
+```
 
-# The intended use of this is to help speed up the SciDB uniq operator workflow:
-iquery -aq "unique(sort(cu(build(<s:string>[i=1:4,4,0],\'{1}[(x),(y),(x),(a)]\',true))))"
+The `cu` operator can help speed up the SciDB uniq operator workflow quite a bit.
+Consider the following timing results run on a 64-instance SciDB cluster comparing
+the usual `uniq(sort(...))` approach with and without `cu`:
+```
+time iquery -aq "op_count(uniq(sort(build(<s:string>[i=1:100000000,1000000,0],i % 5000))))"
+{i} count
+{0} 5000
 
+real    2m34.963s
+user    0m0.017s
+sys     0m0.005s
+
+time iquery -aq "op_count(uniq(sort(cu(build(<s:string>[i=1:100000000,1000000,0],i % 5000)))))"
+{i} count
+{0} 5000
+
+real    0m10.777s
+user    0m0.013s
+sys     0m0.008s
 ```
    
 
