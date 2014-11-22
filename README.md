@@ -1,5 +1,7 @@
 # cu   (chunkwise unique)
 
+THIS IS STILL IN DEVELOPMENT AND NOT STABLE, USE WITH CARE.
+
 Return unique elements within each chunk by filtering repeated values.
 
 
