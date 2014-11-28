@@ -71,8 +71,9 @@ public:
         return false;
     }
 
-    /* The instance-parallel 'main' routine of this operator.
-       This runs on each instance in the SciDB cluster.
+    /* The instance-parallel 'main' routine of this operator.  This runs on
+     * each instance in the SciDB cluster and returns a shared pointer to an
+     * Array.
      */
     shared_ptr< Array> execute(vector< shared_ptr< Array> >& inputArrays, shared_ptr<Query> query)
     {
@@ -85,34 +86,33 @@ public:
 // Iterate over each chunk owned by this instance
         while (!arrayIter->end())
         {
-            chunkIter = arrayIter->getChunk().getConstIterator(0);
-            Coordinates start = chunkIter->getPosition();
-            int64_t last_row = start[0];
-            vector<string> chunkdata;
-            for(;;)
+            chunkIter = arrayIter->getChunk().getConstIterator(ChunkIterator::IGNORE_EMPTY_CELLS);
+            if(chunkIter->end())
             {
-                if(!chunkIter->end())
-                {
-                    Value const& val = chunkIter->getItem();
-                    Coordinates coords = chunkIter->getPosition();
+              ++(*arrayIter);
+            } else
+            {
+              Coordinates start = chunkIter->getPosition();
+              vector<string> chunkdata;
+              for(;;)
+              {
+                Value const& val = chunkIter->getItem();
 // XXX this is a dumb way to munge these data, improve
-                    chunkdata.push_back(string(val.getString()));
-                    last_row = coords[0];
-                    ++(*chunkIter);
-                }
+                chunkdata.push_back(string(val.getString()));
+                ++(*chunkIter);
                 if(chunkIter->end()) break;
-            }
-            const char **a = (const char **)malloc(chunkdata.size() * sizeof(char *));
-            if(!a) throw PLUGIN_USER_EXCEPTION("chunk unique malloc error", SCIDB_SE_UDO, SCIDB_USER_ERROR_CODE_START);
-            for(unsigned int j=0;j<chunkdata.size(); ++j) a[j] = chunkdata[j].c_str();
-            qsort (a, chunkdata.size(), sizeof (char *), cmpstringp);
+              }
+              const char **a = (const char **)malloc(chunkdata.size() * sizeof(char *));
+              if(!a) throw PLUGIN_USER_EXCEPTION("chunk unique malloc error", SCIDB_SE_UDO, SCIDB_USER_ERROR_CODE_START);
+              for(unsigned int j=0;j<chunkdata.size(); ++j) a[j] = chunkdata[j].c_str();
+              qsort (a, chunkdata.size(), sizeof (char *), cmpstringp);
 // write the output (has same schema as input)
-            shared_ptr<ChunkIterator> outputChunkIter = outputArrayIterator->newChunk(start).getIterator(query, ChunkIterator::SEQUENTIAL_WRITE);
-            size_t j = 0;
-            Value val;
-            const char *ref = a[0];
-            for(;;)
-            {
+              shared_ptr<ChunkIterator> outputChunkIter = outputArrayIterator->newChunk(start).getIterator(query, ChunkIterator::SEQUENTIAL_WRITE);
+              size_t j = 0;
+              Value val;
+              const char *ref = a[0];
+              for(;;)
+              {
                 if(outputChunkIter->end() || j>=chunkdata.size()) break;
                 if(a[j] && ((strcmp(ref, a[j])!=0) || j==0))
                 {
@@ -122,14 +122,16 @@ public:
                 }
                 ++j;
                 ++(*outputChunkIter);
-            }
-            if(a) free(a);
-            outputChunkIter->flush();
-            if(outputChunkIter) outputChunkIter->reset();
+              }
+              if(a) free(a);
+              outputChunkIter->flush();
+              if(outputChunkIter) outputChunkIter->reset();
 // Advance the array iterators in lock step
-            ++(*arrayIter);
-            ++(*outputArrayIterator);
+              ++(*arrayIter);
+              ++(*outputArrayIterator);
+            }
         }
+        outputArrayIterator->reset();
         return output;
     }
 };
