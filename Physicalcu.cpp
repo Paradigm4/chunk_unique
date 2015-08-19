@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+using namespace std;
+
 static int
 cmpstringp (const void *p1, const void *p2)
 {
@@ -55,11 +57,13 @@ public:
         PhysicalOperator(logicalName, physicalName, parameters, schema)
     {}
 
+#ifndef CPP11
     virtual ArrayDistribution getOutputDistribution(vector<ArrayDistribution> const& inputDistributions,
                                                     vector<ArrayDesc> const& inputSchemas) const
     {
        return inputDistributions[0];
     }
+#endif
 
     /**
       * [Optimizer API] Determine if operator changes result chunk distribution.

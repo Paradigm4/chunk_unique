@@ -24,6 +24,8 @@
  * @author B. W. Lewis <blewis@paradigm4.com>
  */
 
+using namespace std;
+
 #include "query/Operator.h"
 namespace scidb
 {
@@ -71,7 +73,11 @@ public:
            throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) <<  "cu requires a single string-valued attribute";
         Attributes outputAttributes(matrix.getAttributes());
         Dimensions outputDimensions(matrix.getDimensions());
+#ifdef CPP11
+        return ArrayDesc(matrix.getName(), outputAttributes, outputDimensions, defaultPartitioning());
+#else
         return ArrayDesc(matrix.getName(), outputAttributes, outputDimensions);
+#endif
     }
 };
 

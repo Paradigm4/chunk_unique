@@ -30,7 +30,7 @@ DEBUG=-g -ggdb3
 CFLAGS = -pedantic -W -Wextra -Wall -Wno-variadic-macros -Wno-strict-aliasing \
          -Wno-long-long -Wno-unused-parameter -fPIC -D_STDC_FORMAT_MACROS \
          -Wno-system-headers -isystem  $(OPTIMIZED) -D_STDC_LIMIT_MACROS -std=c99
-CCFLAGS = -pedantic -W -Wextra -Wall -Wno-variadic-macros -Wno-strict-aliasing \
+CXXFLAGS = -pedantic -W -Wextra -Wall -Wno-variadic-macros -Wno-strict-aliasing \
          -Wno-long-long -Wno-unused-parameter -fPIC $(OPTIMIZED) 
 INC = -I. -DPROJECT_ROOT="\"$(SCIDB)\"" -I"$(SCIDB_THIRDPARTY_PREFIX)/3rdparty/boost/include/" \
       -I"$(SCIDB)/include" -I./extern
@@ -42,6 +42,19 @@ LIBS = -shared -Wl,-soname,libcu.so -ldl -L. \
 SRCS = Logicalcu.cpp \
        Physicalcu.cpp
 
+# Compiler settings for SciDB version >= 15.7
+ifneq ("$(wildcard /usr/bin/g++-4.9)","")
+  CC := "/usr/bin/gcc-4.9"
+  CXX := "/usr/bin/g++-4.9"
+  CXXFLAGS+=-std=c++11 -DCPP11
+else
+  ifneq ("$(wildcard /opt/rh/devtoolset-3/root/usr/bin/gcc)","")
+    CC := "/opt/rh/devtoolset-3/root/usr/bin/gcc"
+    CXX := "/opt/rh/devtoolset-3/root/usr/bin/g++"
+    CXXFLAGS+=-std=c++11 -DCPP11
+  endif
+endif
+
 all: libcu.so
 
 clean:
@@ -49,9 +62,9 @@ clean:
 
 libcu.so: $(SRCS)
 	@if test ! -d "$(SCIDB)"; then echo  "Error. Try:\n\nmake SCIDB=<PATH TO SCIDB INSTALL PATH>"; exit 1; fi
-	$(CXX) $(CCFLAGS) $(INC) -o Logicalcu.o -c Logicalcu.cpp
-	$(CXX) $(CCFLAGS) $(INC) -o Physicalcu.o -c Physicalcu.cpp
-	$(CXX) $(CCFLAGS) $(INC) -o libcu.so plugin.cpp Logicalcu.o Physicalcu.o $(LIBS)
+	$(CXX) $(CXXFLAGS) $(INC) -o Logicalcu.o -c Logicalcu.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -o Physicalcu.o -c Physicalcu.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -o libcu.so plugin.cpp Logicalcu.o Physicalcu.o $(LIBS)
 	@echo "Now copy libcu.so to $(INSTALL_DIR) on all your SciDB nodes, and restart SciDB."
 
 test:
