@@ -1,8 +1,7 @@
 # cu   (chunkwise unique)
 
-
 Return unique elements within each chunk by filtering repeated values.
-
+Recently, the global unique can be accomplished easier (and for any datatypes) using the new repo at https://github.com/Paradigm4/grouped_aggregate. See that repo for more details.
 
 ## Synopsis
 Usage: `cu(A)`
